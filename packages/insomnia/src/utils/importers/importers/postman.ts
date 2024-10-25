@@ -235,7 +235,7 @@ export class ImportPostman {
     const body = this.importBody(request.body);
     if (
       request.body?.mode === 'raw' &&
-      !headers.find(({ key }) => key === 'Content-Type') &&
+      !headers.find(({ key }) => key.toLowerCase() === 'content-type') &&
       typeof body === 'object' &&
       body?.mimeType
     ) {
