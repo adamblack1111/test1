@@ -24,7 +24,7 @@ import { generateId } from './misc';
 // The network layer uses settings from the settings model
 // We want to give consumers the ability to override certain settings
 type SettingsOverride = Pick<Settings, 'validateSSL'>;
-const wrapAroundIterationOverIterationData = (list?: UserUploadEnvironment[], currentIteration?: number): UserUploadEnvironment | undefined => {
+export const wrapAroundIterationOverIterationData = (list?: UserUploadEnvironment[], currentIteration?: number): UserUploadEnvironment | undefined => {
   if (currentIteration === undefined || !Array.isArray(list) || list.length === 0) {
     return undefined;
   }
@@ -33,7 +33,7 @@ const wrapAroundIterationOverIterationData = (list?: UserUploadEnvironment[], cu
   };
   return list[(currentIteration + 1) % list.length];
 };
-export async function getSendRequestCallbackMemDb(environmentId: string, memDB: any, settingsOverrides?: SettingsOverride, iterationData?: UserUploadEnvironment[], iterationCount?: number) {
+export async function getSendRequestCallbackMemDb(environmentId: string, memDB: any, settingsOverrides?: SettingsOverride, iterationTotal?: number) {
   // Initialize the DB in-memory and fill it with data if we're given one
   await database.init(
     modelTypes(),
@@ -118,10 +118,9 @@ export async function getSendRequestCallbackMemDb(environmentId: string, memDB: 
   };
 
   // Return callback helper to send requests
-  return async function sendRequest(requestId: string, iteration?: number) {
+  return async function sendRequest(requestId: string, iteration?: number, iterationDataRow?: UserUploadEnvironment) {
     const requestData = await fetchInsoRequestData(requestId, environmentId);
-    const getCurrentRowOfIterationData = wrapAroundIterationOverIterationData(iterationData, iteration);
-    const mutatedContext = await tryToExecutePreRequestScript(requestData, getCurrentRowOfIterationData, iteration, iterationCount);
+    const mutatedContext = await tryToExecutePreRequestScript(requestData, iterationDataRow, iteration, iterationTotal);
     if (mutatedContext === null) {
       console.error('Time out while executing pre-request script');
       return null;
@@ -168,6 +167,6 @@ export async function getSendRequestCallbackMemDb(environmentId: string, memDB: 
     const bodyBuffer = await getBodyBuffer(res) as Buffer;
     const data = bodyBuffer ? bodyBuffer.toString('utf8') : undefined;
 
-    return { status, statusMessage, data, headers, responseTime, timelinePath: requestData.timelinePath, testResults: postMutatedContext.requestTestResults };
+    return { status, statusMessage, data, headers, responseTime, timelinePath: requestData.timelinePath, testResults: postMutatedContext.requestTestResults, nextRequestIdOrName: postMutatedContext?.execution?.nextRequestIdOrName };
   };
 }

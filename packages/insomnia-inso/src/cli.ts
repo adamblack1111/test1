@@ -7,8 +7,9 @@ import consola, { BasicReporter, FancyReporter, LogLevel, logType } from 'consol
 import { cosmiconfig } from 'cosmiconfig';
 import fs from 'fs';
 import { JSON_ORDER_PREFIX, JSON_ORDER_SEPARATOR } from 'insomnia/src/common/constants';
-import { getSendRequestCallbackMemDb } from 'insomnia/src/common/send-request';
+import { getSendRequestCallbackMemDb, wrapAroundIterationOverIterationData } from 'insomnia/src/common/send-request';
 import { UserUploadEnvironment } from 'insomnia/src/models/environment';
+import { invariant } from 'insomnia/src/utils/invariant';
 import { deserializeNDJSON } from 'insomnia/src/utils/ndjson';
 import { type RequestTestResult } from 'insomnia-sdk';
 import { generate, runTestsCli } from 'insomnia-testing';
@@ -23,6 +24,7 @@ import { Database, isFile, loadDb } from './db';
 import { insomniaExportAdapter } from './db/adapters/insomnia-adapter';
 import { loadApiSpec, promptApiSpec } from './db/models/api-spec';
 import { loadEnvironment, promptEnvironment } from './db/models/environment';
+import { BaseModel } from './db/models/types';
 import { loadTestSuites, promptTestSuites } from './db/models/unit-test-suite';
 import { matchIdIsh } from './db/models/util';
 import { loadWorkspace, promptWorkspace } from './db/models/workspace';
@@ -534,39 +536,63 @@ export const go = (args?: string[]) => {
         const iterationCount = parseInt(options.iterationCount, 10);
 
         const iterationData = await pathToIterationData(options.iterationData, options.envVar);
-        const sendRequest = await getSendRequestCallbackMemDb(environment._id, db, { validateSSL: !options.disableCertValidation }, iterationData, iterationCount);
-        let success = true;
-        for (let i = 0; i < iterationCount; i++) {
+        const sendRequest = await getSendRequestCallbackMemDb(environment._id, db, { validateSSL: !options.disableCertValidation }, iterationCount);
+        let requestOrTestFailed = false;
+        let workflowQueue: { req: BaseModel; iteration: number; iterationData?: UserUploadEnvironment }[] = [];
+        // build a workflow queue of requests to run and approriate iteration data
+        for (let iteration = 0; iteration < iterationCount; iteration++) {
           for (const req of requestsToRun) {
-            if (options.bail && !success) {
-              return;
-            }
-            logger.log(`Running request: ${req.name} ${req._id}`);
-            const res = await sendRequest(req._id, i);
-            if (!res) {
-              logger.error('Timed out while running script');
-              success = false;
-              continue;
-            }
-            // logger.debug(res);
-            const timelineString = await readFile(res.timelinePath, 'utf8');
-            const appendNewLineIfNeeded = (str: string) => str.endsWith('\n') ? str : str + '\n';
-            const timeline = deserializeNDJSON(timelineString).map(e => appendNewLineIfNeeded(e.value)).join('');
-            logger.trace(timeline);
-            if (res.testResults?.length) {
-              console.log(`
-Test results:`);
-              console.log(logTestResult(options.reporter, res.testResults));
-              const hasFailedTests = res.testResults.some(t => t.status === 'failed');
-              if (hasFailedTests) {
-                success = false;
-              }
-            }
-
-            await new Promise(r => setTimeout(r, parseInt(options.delayRequest, 10)));
+            const getCurrentRowOfIterationData = wrapAroundIterationOverIterationData(iterationData, iteration);
+            workflowQueue.push({ req, iteration, iterationData: getCurrentRowOfIterationData });
           }
         }
-        return process.exit(success ? 0 : 1);
+        // loop over workflow queue and if nextrequest exists drop the queue and add it to run next with the same iteration data
+        // if bail is true, exit on first request or test failure
+        while (workflowQueue.length) {
+          // remove the first element in the queue
+          const current = workflowQueue.shift();
+          invariant(current, 'something went wrong with the workflow current item should be defined');
+          logger.log(`Running request: ${current.req.name} ${current.req._id}`);
+          const res = await sendRequest(current.req._id, current.iteration, current.iterationData);
+          if (!res) {
+            logger.error('Timed out while running script');
+            requestOrTestFailed = true;
+            if (options.bail) {
+              return process.exit(1);
+            }
+            // continue to next in workflow queue
+            continue;
+          }
+          if (res.nextRequestIdOrName) {
+            const nextRequest = requestsToRun.find(r => r.name === res.nextRequestIdOrName || r._id === res.nextRequestIdOrName);
+            if (nextRequest) {
+              workflowQueue = [];
+              workflowQueue.push({ req: nextRequest, iteration: current.iteration, iterationData: current.iterationData });
+            }
+          }
+          // Log timeline in --verbose
+          const timelineString = await readFile(res.timelinePath, 'utf8');
+          const appendNewLineIfNeeded = (str: string) => str.endsWith('\n') ? str : str + '\n';
+          const timeline = deserializeNDJSON(timelineString).map(e => appendNewLineIfNeeded(e.value)).join('');
+          logger.trace(timeline);
+          // Log test results
+          if (res.testResults?.length) {
+            console.log(`
+            Test results:`);
+            console.log(logTestResult(options.reporter, res.testResults));
+            const hasFailedTests = res.testResults.some(t => t.status === 'failed');
+            if (hasFailedTests) {
+              requestOrTestFailed = true;
+              if (options.bail) {
+                return process.exit(1);
+              }
+            }
+          }
+          // Delay between requests
+          await new Promise(r => setTimeout(r, parseInt(options.delayRequest, 10)));
+        }
+        // Exit with 1 if any request or test failed
+        return process.exit(requestOrTestFailed ? 1 : 0);
       } catch (error) {
         logErrorAndExit(error);
       }
