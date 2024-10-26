@@ -166,7 +166,8 @@ export async function getSendRequestCallbackMemDb(environmentId: string, memDB: 
     const headers = headerArray?.reduce((acc, { name, value }) => ({ ...acc, [name.toLowerCase() || '']: value || '' }), []);
     const bodyBuffer = await getBodyBuffer(res) as Buffer;
     const data = bodyBuffer ? bodyBuffer.toString('utf8') : undefined;
-
-    return { status, statusMessage, data, headers, responseTime, timelinePath: requestData.timelinePath, testResults: postMutatedContext.requestTestResults, nextRequestIdOrName: postMutatedContext?.execution?.nextRequestIdOrName };
+    // TODO: find out why requestTestResults can be undefined and eliminate the case so its always an array
+    const testResults = [...(mutatedContext.requestTestResults || []), ...(postMutatedContext.requestTestResults || [])];
+    return { status, statusMessage, data, headers, responseTime, timelinePath: requestData.timelinePath, testResults, nextRequestIdOrName: postMutatedContext?.execution?.nextRequestIdOrName };
   };
 }
