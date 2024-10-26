@@ -565,10 +565,13 @@ export const go = (args?: string[]) => {
           }
           // TODO: add support for skipRequest
           if (res.nextRequestIdOrName) {
+            logger.trace(`setNextRequest(${res.nextRequestIdOrName}) found, adding to workflow queue, and removing any others`);
+
             // TODO: add support for null input to exit 0
             const nextRequest = requestsToRun.find(r => r.name === res.nextRequestIdOrName || r._id === res.nextRequestIdOrName);
             if (nextRequest) {
               workflowQueue = [];
+              // TODO: should we use the same iteration data as previous or next in list?
               workflowQueue.push({ req: nextRequest, iteration: current.iteration, iterationData: current.iterationData });
             }
           }
