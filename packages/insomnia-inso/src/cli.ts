@@ -563,7 +563,9 @@ export const go = (args?: string[]) => {
             // continue to next in workflow queue
             continue;
           }
+          // TODO: add support for skipRequest
           if (res.nextRequestIdOrName) {
+            // TODO: add support for null input to exit 0
             const nextRequest = requestsToRun.find(r => r.name === res.nextRequestIdOrName || r._id === res.nextRequestIdOrName);
             if (nextRequest) {
               workflowQueue = [];
