@@ -286,12 +286,8 @@ export const EnvironmentKVEditor = ({ data, onChange }: EditorProps) => {
     );
   };
 
-  useEffect(() => {
-
-  }, []);
-
   return (
-    <div className="p-[--padding-sm] min-w-max h-full overflow-hidden flex flex-col">
+    <div className="min-w-max h-full overflow-hidden flex flex-col">
       <Toolbar className="content-box z-10 bg-[var(--color-bg)] flex flex-shrink-0 h-[var(--line-height-sm)] text-[var(--font-size-sm)]">
         <Button
           className="px-4 py-1 h-full flex items-center justify-center gap-2 aria-pressed:bg-[--hl-sm] text-[--color-font] text-xs hover:bg-[--hl-xs] focus:ring-inset ring-1 ring-transparent focus:ring-[--hl-md] transition-all"
@@ -317,7 +313,7 @@ export const EnvironmentKVEditor = ({ data, onChange }: EditorProps) => {
         selectionMode='none'
         dragAndDropHooks={dragAndDropHooks}
         dependencies={[kvPairError]}
-        className="w-full overflow-y-auto py-1 h-full"
+        className="p-[--padding-sm] w-full overflow-y-auto h-full"
         items={kvPairs}
       >
         {kvPair => {
@@ -326,7 +322,7 @@ export const EnvironmentKVEditor = ({ data, onChange }: EditorProps) => {
             <ListBoxItem
               key={id}
               id={id}
-              textValue={name}
+              textValue={`environment-item-${name || id}`}
               style={{ opacity: enabled ? '1' : '0.4' }}
               className={'w-full flex focus:outline-none  h-[--line-height-sm]'}
             >
