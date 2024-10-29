@@ -12,7 +12,7 @@ import { checkNestedKeys, ensureKeyIsValid } from '../environment-utils';
 
 interface EditorProps {
   data: EnvironmentKvPairData[];
-  onChange: (newPari: EnvironmentKvPairData[]) => void;
+  onChange: (newPair: EnvironmentKvPairData[]) => void;
 }
 const cellCommonStyle = 'h-full px-2  flex items-center';
 
@@ -41,7 +41,7 @@ const ItemButton = (props: ButtonProps & { tabIndex?: number }) => {
 export const EnvironmentKVEditor = ({ data, onChange }: EditorProps) => {
   const kvPairs: EnvironmentKvPairData[] = data.length > 0 ? [...data] : [createNewPair()];
   const codeModalRef = useRef<CodePromptModalHandle>(null);
-  const [kvPairError, setKvPariError] = useState<{ id: string; error: string }[]>([]);
+  const [kvPairError, setKvPairError] = useState<{ id: string; error: string }[]>([]);
 
   const repositionInArray = (moveItems: string[], targetIndex: number) => {
     const removed = kvPairs.filter(pair => pair.id !== moveItems[0]);
@@ -153,13 +153,13 @@ export const EnvironmentKVEditor = ({ data, onChange }: EditorProps) => {
               const error = ensureKeyIsValid(newName, true);
               if (error) {
                 if (itemError) {
-                  setKvPariError(kvPairError.map(p => p.id === id ? { id, error } : p));
+                  setKvPairError(kvPairError.map(p => p.id === id ? { id, error } : p));
                 } else {
-                  setKvPariError([...kvPairError, { id, error }]);
+                  setKvPairError([...kvPairError, { id, error }]);
                 }
               } else {
                 if (itemError) {
-                  setKvPariError(kvPairError.filter(p => p.id !== id));
+                  setKvPairError(kvPairError.filter(p => p.id !== id));
                 }
                 handleItemChange(id, 'name', newName);
               }
