@@ -19,7 +19,6 @@ import GitVCS, {
   GIT_INSOMNIA_DIR_NAME,
   GIT_INTERNAL_DIR,
   type GitLogEntry,
-  MergeConflictError,
 } from '../../sync/git/git-vcs';
 import { MemClient } from '../../sync/git/mem-client';
 import { NeDBClient } from '../../sync/git/ne-db-client';

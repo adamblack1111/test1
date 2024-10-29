@@ -221,6 +221,7 @@ export const GitSyncDropdown: FC<Props> = ({ gitRepository, isInsomniaSyncEnable
             showAlert({
               title: 'Pull Failed',
               message: err.message,
+              bodyClassName: 'whitespace-break-spaces',
             });
           }
         }
@@ -331,6 +332,7 @@ export const GitSyncDropdown: FC<Props> = ({ gitRepository, isInsomniaSyncEnable
     isActive: branch === currentBranch,
     icon: 'code-branch',
     action: async () => {
+      // file://./../../routes/git-actions.tsx#gitCheckoutAction
       gitCheckoutFetcher.submit(
         {
           branch,

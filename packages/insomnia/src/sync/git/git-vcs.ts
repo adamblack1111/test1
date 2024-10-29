@@ -625,6 +625,11 @@ export class GitVCS {
   }
 
   async pull(gitCredentials?: GitCredentials | null) {
+    const changes = await this.status();
+    const hasUncommittedChanges = changes.staged.length > 0 || changes.unstaged.length > 0;
+    if (hasUncommittedChanges) {
+      throw new Error('Cannot pull with uncommitted changes, please commit local changes first.');
+    }
     console.log('[git] Pull remote=origin', await this.getCurrentBranch());
     return git.pull({
       ...this._baseOpts,
