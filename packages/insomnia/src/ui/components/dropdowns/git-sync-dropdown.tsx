@@ -197,7 +197,10 @@ export const GitSyncDropdown: FC<Props> = ({ gitRepository, isInsomniaSyncEnable
       action: async () => {
         try {
           setIsPulling(true);
-          await pullFromGitRemote(workspaceId).finally(() => setIsPulling(false));
+          await pullFromGitRemote(workspaceId).finally(() => {
+            setIsPulling(false);
+            revalidate();
+          });
         } catch (err) {
           if (err instanceof MergeConflictError) {
             const data = err.data;
@@ -211,7 +214,10 @@ export const GitSyncDropdown: FC<Props> = ({ gitRepository, isInsomniaSyncEnable
                     handledMergeConflicts: conflicts,
                     commitMessage: data.commitMessage,
                     commitParent: data.commitParent,
-                  }).finally(() => setIsPulling(false));
+                  }).finally(() => {
+                    setIsPulling(false);
+                    revalidate();
+                  });
                 } else {
                   // user aborted merge, do nothing
                 }
