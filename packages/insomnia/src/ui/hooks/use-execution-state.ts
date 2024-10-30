@@ -15,7 +15,7 @@ export function useExecutionState({ requestId }: { requestId?: string }) {
       if (targetSteps) {
         isMounted && setSteps(targetSteps);
       } else {
-        setSteps([]);
+        isMounted && setSteps([]);
       }
     };
     fn();
