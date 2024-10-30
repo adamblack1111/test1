@@ -741,13 +741,9 @@ export class GitVCS {
 
             throw new MergeConflictError('Need to solve merge conflicts first', {
               conflicts: mergeConflicts,
-              /* labels: {
-                ours: currentLocalBranch,
-                theirs: remoteBranch,
-              }, */
               labels: {
-                ours: localHeadCommitOid,
-                theirs: remoteHeadCommitOid,
+                ours: `${currentLocalBranch} ${localHeadCommitOid}`,
+                theirs: `${remoteBranch} ${remoteHeadCommitOid}`,
               },
               commitMessage: `Merge branch '${remoteBranch}' into ${currentLocalBranch}`,
               commitParent: [localHeadCommitOid, remoteHeadCommitOid],

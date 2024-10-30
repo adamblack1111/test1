@@ -59,7 +59,7 @@ export const GitLogModal: FC<Props> = ({ onClose }) => {
                   <Icon icon="x" />
                 </Button>
               </div>
-              <div className='rounded w-full border border-solid border-[--hl-sm] overflow-y-auto max-h-96'>
+              <div className='rounded w-full border border-solid border-[--hl-sm] select-none overflow-y-auto max-h-96'>
                 <Table
                   selectionMode='multiple'
                   defaultSelectedKeys="all"
@@ -67,9 +67,6 @@ export const GitLogModal: FC<Props> = ({ onClose }) => {
                   className="border-separate border-spacing-0 w-full"
                 >
                   <TableHeader>
-                    <Column isRowHeader className="sticky px-2 py-2 top-0 z-10 border-b border-[--hl-sm] bg-[--hl-xs] text-left text-xs font-semibold backdrop-blur backdrop-filter focus:outline-none">
-                      Commit ID
-                    </Column>
                     <Column isRowHeader className="sticky px-2 py-2 top-0 z-10 border-b border-[--hl-sm] bg-[--hl-xs] text-left text-xs font-semibold backdrop-blur backdrop-filter focus:outline-none">
                       Message
                     </Column>
@@ -91,11 +88,6 @@ export const GitLogModal: FC<Props> = ({ onClose }) => {
                   >
                     {item => (
                       <Row className="group focus:outline-none focus-within:bg-[--hl-xxs] transition-colors">
-                        <Cell className="whitespace-nowrap text-sm font-medium border-b border-solid border-[--hl-sm] group-last-of-type:border-none focus:outline-none">
-                          <span className='p-2'>
-                            {item.id}
-                          </span>
-                        </Cell>
                         <Cell className="whitespace-nowrap text-sm font-medium border-b border-solid border-[--hl-sm] group-last-of-type:border-none focus:outline-none">
                           <span className='p-2'>
                             {item.commit.message}
