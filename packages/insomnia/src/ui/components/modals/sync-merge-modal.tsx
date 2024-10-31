@@ -51,6 +51,7 @@ export const SyncMergeModal = forwardRef<SyncMergeModalHandle>((_, ref) => {
         isOpen: true,
         labels,
       });
+      // select the first conflict by default
       setSelectedConflict(conflicts?.[0] || null);
 
       window.main.trackSegmentEvent({

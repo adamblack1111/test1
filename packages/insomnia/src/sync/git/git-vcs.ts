@@ -767,9 +767,9 @@ export class GitVCS {
   }: {
     gitCredentials?: GitCredentials | null;
     handledMergeConflicts: MergeConflict[];
-      commitMessage: string;
-      commitParent: string[];
-    }) {
+    commitMessage: string;
+    commitParent: string[];
+  }) {
     console.log('[git] continue to merge after resolving merge conflicts', await this.getCurrentBranch());
     for (const conflict of handledMergeConflicts) {
       assertIsPromiseFsClient(this._baseOpts.fs);

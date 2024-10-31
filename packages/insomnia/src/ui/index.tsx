@@ -1146,9 +1146,6 @@ async function renderApp() {
 
   // Store the last location in local storage
   router.subscribe(({ location, navigation }) => {
-    if (location.pathname && navigation.location?.pathname) {
-      console.log('navigating', location.pathname, navigation.location?.pathname);
-    }
     const match = matchPath(
       {
         path: '/organization/:organizationId',
