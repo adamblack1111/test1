@@ -531,23 +531,6 @@ export const go = (args?: string[]) => {
         return process.exit(1);
       }
 
-      const getNextRequestOffset = (
-        leftRequestsToRun: BaseModel[],
-        nextRequestIdOrName: string
-      ) => {
-        const idMatchOffset = leftRequestsToRun.findIndex(req => req._id.trim() === nextRequestIdOrName.trim());
-        if (idMatchOffset >= 0) {
-          return idMatchOffset;
-        }
-
-        const nameMatchOffset = leftRequestsToRun.reverse().findIndex(req => req.name.trim() === nextRequestIdOrName.trim());
-        if (nameMatchOffset >= 0) {
-          return leftRequestsToRun.length - 1 - nameMatchOffset;
-        }
-
-        return leftRequestsToRun.length;
-      };
-
       try {
         const iterationCount = parseInt(options.iterationCount, 10);
 
@@ -741,4 +724,21 @@ Test results:`);
     });
 
   program.parseAsync(args || process.argv).catch(logErrorAndExit);
+};
+
+const getNextRequestOffset = (
+  leftRequestsToRun: BaseModel[],
+  nextRequestIdOrName: string
+) => {
+  const idMatchOffset = leftRequestsToRun.findIndex(req => req._id.trim() === nextRequestIdOrName.trim());
+  if (idMatchOffset >= 0) {
+    return idMatchOffset;
+  }
+
+  const nameMatchOffset = leftRequestsToRun.reverse().findIndex(req => req.name.trim() === nextRequestIdOrName.trim());
+  if (nameMatchOffset >= 0) {
+    return leftRequestsToRun.length - 1 - nameMatchOffset;
+  }
+
+  return leftRequestsToRun.length;
 };
