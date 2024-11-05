@@ -639,124 +639,139 @@ export class GitVCS {
     }).catch(
       async err => {
         if (err instanceof git.Errors.MergeConflictError) {
-          const {
-            filepaths, bothModified, deleteByUs, deleteByTheirs,
-          } = err.data;
-          if (filepaths.length) {
-            const mergeConflicts: MergeConflict[] = [];
-            const conflictPathsObj = {
-              bothModified,
-              deleteByUs,
-              deleteByTheirs,
-            };
-            const conflictTypeList: (keyof typeof conflictPathsObj)[] = [
-              'bothModified',
-              'deleteByUs',
-              'deleteByTheirs',
-            ];
+          const oursBranch = await this.getCurrentBranch();
+          const theirsBranch = `origin/${oursBranch}`;
 
-            const currentLocalBranch = await this.getCurrentBranch();
-            const localHeadCommitOid = await git.resolveRef({
-              ...this._baseOpts,
-              ...gitCallbacks(gitCredentials),
-              ref: currentLocalBranch,
-            });
-
-            const remoteBranch = `origin/${currentLocalBranch}`;
-            const remoteHeadCommitOid = await git.resolveRef({
-              ...this._baseOpts,
-              ...gitCallbacks(gitCredentials),
-              ref: remoteBranch,
-            });
-
-            const _baseOpts = this._baseOpts;
-
-            function readBlob(filepath: string, oid: string) {
-              return git.readBlob({
-                ..._baseOpts,
-                ...gitCallbacks(gitCredentials),
-                oid,
-                filepath,
-              }).then(
-                ({ blob, oid: blobId }) => ({
-                  blobContent: parse(Buffer.from(blob).toString('utf8')),
-                  blobId,
-                })
-              );
-            }
-
-            function readMineBlob(filepath: string) {
-              return readBlob(filepath, localHeadCommitOid);
-            }
-
-            function readTheirsBlob(filepath: string) {
-              return readBlob(filepath, remoteHeadCommitOid);
-            }
-
-            for (const conflictType of conflictTypeList) {
-              const conflictPaths = conflictPathsObj[conflictType];
-              const message = {
-                'bothModified': 'both modified',
-                'deleteByUs': 'you deleted and they modified',
-                'deleteByTheirs': 'they deleted and you modified',
-              }[conflictType];
-              for (const conflictPath of conflictPaths) {
-                let mineBlobContent = null;
-                let mineBlobId = null;
-
-                let theirsBlobContent = null;
-                let theirsBlobId = null;
-
-                if (conflictType !== 'deleteByUs') {
-                  const {
-                    blobContent,
-                    blobId,
-                  } = await readMineBlob(conflictPath);
-                  mineBlobContent = blobContent;
-                  mineBlobId = blobId;
-                }
-
-                if (conflictType !== 'deleteByTheirs') {
-                  const {
-                    blobContent,
-                    blobId,
-                  } = await readTheirsBlob(conflictPath);
-                  theirsBlobContent = blobContent;
-                  theirsBlobId = blobId;
-                }
-                const name = mineBlobContent?.name || theirsBlobContent?.name || '';
-
-                mergeConflicts.push({
-                  key: conflictPath,
-                  name,
-                  message,
-                  mineBlob: mineBlobId,
-                  theirsBlob: theirsBlobId,
-                  choose: mineBlobId || theirsBlobId,
-                  mineBlobContent,
-                  theirsBlobContent,
-                });
-              }
-            }
-
-            throw new MergeConflictError('Need to solve merge conflicts first', {
-              conflicts: mergeConflicts,
-              labels: {
-                ours: `${currentLocalBranch} ${localHeadCommitOid}`,
-                theirs: `${remoteBranch} ${remoteHeadCommitOid}`,
-              },
-              commitMessage: `Merge branch '${remoteBranch}' into ${currentLocalBranch}`,
-              commitParent: [localHeadCommitOid, remoteHeadCommitOid],
-            });
-
-          } else {
-            throw new Error('Merge conflict filepaths is of length 0');
-          }
+          return await this._collectMergeConflicts(
+            err,
+            oursBranch,
+            theirsBranch,
+            gitCredentials
+          );
         } else {
           throw err;
         }
       },
     );
+  }
+
+  async _collectMergeConflicts(
+    mergeConflictError: InstanceType<typeof git.Errors.MergeConflictError>,
+    oursBranch: string,
+    theirsBranch: string,
+    gitCredentials?: GitCredentials | null,
+  ) {
+    const {
+      filepaths, bothModified, deleteByUs, deleteByTheirs,
+    } = mergeConflictError.data;
+    if (filepaths.length) {
+      const mergeConflicts: MergeConflict[] = [];
+      const conflictPathsObj = {
+        bothModified,
+        deleteByUs,
+        deleteByTheirs,
+      };
+      const conflictTypeList: (keyof typeof conflictPathsObj)[] = [
+        'bothModified',
+        'deleteByUs',
+        'deleteByTheirs',
+      ];
+
+      const oursHeadCommitOid = await git.resolveRef({
+        ...this._baseOpts,
+        ...gitCallbacks(gitCredentials),
+        ref: oursBranch,
+      });
+
+      const theirsHeadCommitOid = await git.resolveRef({
+        ...this._baseOpts,
+        ...gitCallbacks(gitCredentials),
+        ref: theirsBranch,
+      });
+
+      const _baseOpts = this._baseOpts;
+
+      function readBlob(filepath: string, oid: string) {
+        return git.readBlob({
+          ..._baseOpts,
+          ...gitCallbacks(gitCredentials),
+          oid,
+          filepath,
+        }).then(
+          ({ blob, oid: blobId }) => ({
+            blobContent: parse(Buffer.from(blob).toString('utf8')),
+            blobId,
+          })
+        );
+      }
+
+      function readOursBlob(filepath: string) {
+        return readBlob(filepath, oursHeadCommitOid);
+      }
+
+      function readTheirsBlob(filepath: string) {
+        return readBlob(filepath, theirsHeadCommitOid);
+      }
+
+      for (const conflictType of conflictTypeList) {
+        const conflictPaths = conflictPathsObj[conflictType];
+        const message = {
+          'bothModified': 'both modified',
+          'deleteByUs': 'you deleted and they modified',
+          'deleteByTheirs': 'they deleted and you modified',
+        }[conflictType];
+        for (const conflictPath of conflictPaths) {
+          let mineBlobContent = null;
+          let mineBlobId = null;
+
+          let theirsBlobContent = null;
+          let theirsBlobId = null;
+
+          if (conflictType !== 'deleteByUs') {
+            const {
+              blobContent,
+              blobId,
+            } = await readOursBlob(conflictPath);
+            mineBlobContent = blobContent;
+            mineBlobId = blobId;
+          }
+
+          if (conflictType !== 'deleteByTheirs') {
+            const {
+              blobContent,
+              blobId,
+            } = await readTheirsBlob(conflictPath);
+            theirsBlobContent = blobContent;
+            theirsBlobId = blobId;
+          }
+          const name = mineBlobContent?.name || theirsBlobContent?.name || '';
+
+          mergeConflicts.push({
+            key: conflictPath,
+            name,
+            message,
+            mineBlob: mineBlobId,
+            theirsBlob: theirsBlobId,
+            choose: mineBlobId || theirsBlobId,
+            mineBlobContent,
+            theirsBlobContent,
+          });
+        }
+      }
+
+      throw new MergeConflictError('Need to solve merge conflicts first', {
+        conflicts: mergeConflicts,
+        labels: {
+          ours: `${oursBranch} ${oursHeadCommitOid}`,
+          theirs: `${theirsBranch} ${theirsHeadCommitOid}`,
+        },
+        commitMessage: `Merge branch '${theirsBranch}' into ${oursBranch}`,
+        commitParent: [oursHeadCommitOid, theirsHeadCommitOid],
+      });
+
+    } else {
+      throw new Error('Merge conflict filepaths is of length 0');
+    }
   }
 
   // create a commit after resolving merge conflicts
