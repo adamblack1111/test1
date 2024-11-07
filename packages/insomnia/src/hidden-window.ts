@@ -2,8 +2,6 @@ import { initInsomniaObject, InsomniaObject } from 'insomnia-sdk';
 import { Console, mergeClientCertificates, mergeCookieJar, mergeRequests, mergeSettings, type RequestContext } from 'insomnia-sdk';
 import * as _ from 'lodash';
 
-import { invariant } from '../src/utils/invariant';
-
 export interface HiddenBrowserWindowBridgeAPI {
   runScript: (options: { script: string; context: RequestContext }) => Promise<RequestContext>;
 };
