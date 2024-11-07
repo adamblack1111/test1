@@ -39,18 +39,11 @@ const runScript = async (
 
   const executionContext = await initInsomniaObject(context, scriptConsole.log);
 
-  const evalInterceptor = (script: string) => {
-    invariant(script && typeof script === 'string', 'eval is called with invalid or empty value');
-    const result = eval(script);
-    return result;
-  };
-
   const AsyncFunction = (async () => { }).constructor;
   const executeScript = AsyncFunction(
     'insomnia',
     'require',
     'console',
-    'eval',
     '_',
     'setTimeout',
     // disable these as they are not supported in web or existing implementation
@@ -70,7 +63,6 @@ const runScript = async (
     executionContext,
     window.bridge.requireInterceptor,
     scriptConsole,
-    evalInterceptor,
     _,
     proxiedSetTimeout,
     undefined,
