@@ -98,8 +98,7 @@ const runScript = async (
       data: mutatedContextObject.iterationData,
     } : undefined,
     variables: {
-      id: context.variables.id,
-      name: context.variables.name,
+      name: context.variables?.name || 'localVariables',
       data: mutatedContextObject.variables,
     },
     request: updatedRequest,
