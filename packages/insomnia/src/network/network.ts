@@ -180,6 +180,7 @@ export const tryToExecutePreRequestScript = async (
     responseId,
     ancestors,
   }: Awaited<ReturnType<typeof fetchRequestData>>,
+  variables: Environment,
   userUploadEnvironment?: UserUploadEnvironment,
   iteration?: number,
   iterationCount?: number,
@@ -224,6 +225,7 @@ export const tryToExecutePreRequestScript = async (
     ancestors,
     eventName: 'prerequest',
     settings,
+    variables,
   });
   if (!mutatedContext || 'error' in mutatedContext) {
     return {
@@ -250,6 +252,7 @@ export const tryToExecutePreRequestScript = async (
     requestTestResults: mutatedContext.requestTestResults,
     userUploadEnvironment: mutatedContext.userUploadEnvironment,
     execution: mutatedContext.execution,
+    variables: mutatedContext.variables,
   };
 };
 
@@ -311,7 +314,24 @@ export async function savePatchesMadeByScript(
 }
 
 export const tryToExecuteScript = async (context: RequestAndContextAndOptionalResponse) => {
-  const { script, request, environment, timelinePath, responseId, baseEnvironment, clientCertificates, cookieJar, response, globals, userUploadEnvironment, iteration, iterationCount, ancestors, eventName, execution } = context;
+  const { script,
+    request,
+    environment,
+    timelinePath,
+    responseId,
+    baseEnvironment,
+    clientCertificates,
+    cookieJar,
+    response,
+    globals,
+    userUploadEnvironment,
+    iteration,
+    iterationCount,
+    ancestors,
+    eventName,
+    execution,
+    variables,
+  } = context;
   invariant(script, 'script must be provided');
 
   const settings = await models.settings.get();
@@ -359,6 +379,7 @@ export const tryToExecuteScript = async (context: RequestAndContextAndOptionalRe
           ...execution, // keep some existing properties in the after-response script from the pre-request script
           location: requestLocation,
         },
+        variables,
       },
     });
     if ('error' in originalOutput) {
@@ -402,6 +423,16 @@ export const tryToExecuteScript = async (context: RequestAndContextAndOptionalRe
       userUploadEnvironment.dataPropertyOrder = userUploadEnvPropertyOrder.map;
     }
 
+    if (output?.variables !== undefined) {
+      const variablesPropertyOrder = orderedJSON.parse(
+        JSON.stringify(output?.variables?.data || {}),
+        JSON_ORDER_PREFIX,
+        JSON_ORDER_SEPARATOR,
+      );
+      variables.data = output?.variables?.data || {};
+      variables.dataPropertyOrder = variablesPropertyOrder.map;
+    }
+
     return {
       request: output.request,
       environment,
@@ -413,6 +444,7 @@ export const tryToExecuteScript = async (context: RequestAndContextAndOptionalRe
       userUploadEnvironment,
       requestTestResults: output.requestTestResults,
       execution: output.execution,
+      variables,
     };
   } catch (err) {
     await fs.promises.appendFile(
@@ -449,6 +481,7 @@ interface RequestContextForScript {
   globals?: Environment; // there could be no global environment
   settings: Settings;
   execution?: ExecutionOption;
+  variables: Environment;
 }
 
 type RequestAndContextAndResponse = RequestContextForScript & {
