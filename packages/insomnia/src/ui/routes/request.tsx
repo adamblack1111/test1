@@ -459,7 +459,7 @@ export interface CollectionRunnerContext {
   iterationResults: RunnerResultPerRequestPerIteration;
   done: boolean;
   responsesInfo: ResponseInfo[];
-  variables: Environment;
+  transientVariables: Environment;
 }
 
 export interface RunnerContextForRequest {
@@ -555,7 +555,7 @@ export const sendActionImplementation = async ({
     extraInfo: undefined,
     baseEnvironment: mutatedContext.baseEnvironment,
     userUploadEnvironment: mutatedContext.userUploadEnvironment,
-    variables: mutatedContext.variables,
+    transientVariables: mutatedContext.transientVariables,
     ignoreUndefinedEnvVariable,
   });
   const renderedRequest = await tryToTransformRequestWithPlugins(renderedResult);
@@ -594,7 +594,7 @@ export const sendActionImplementation = async ({
   const postMutatedContext = await tryToExecuteAfterResponseScript({
     ...requestData,
     ...mutatedContext,
-    variables: mutatedContext.variables || transientVariables,
+    transientVariables: mutatedContext.transientVariables || transientVariables,
     response,
     iteration,
     iterationCount,

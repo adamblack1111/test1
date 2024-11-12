@@ -893,14 +893,14 @@ export const runCollectionAction: ActionFunction = async ({ request, params }) =
     iterationResults: [],
     done: false,
     responsesInfo: [],
-    variables: {
+    transientVariables: {
       ...models.environment.init(),
       _id: uuidv4(),
       type: models.environment.type,
       parentId: '',
       modified: 0,
       created: Date.now(),
-      name: 'Transient Environment',
+      name: 'Transient Variables',
       data: {},
     },
   };
@@ -979,7 +979,7 @@ export const runCollectionAction: ActionFunction = async ({ request, params }) =
             shouldPromptForPathAfterResponse: false,
             ignoreUndefinedEnvVariable: true,
             testResultCollector: resultCollector,
-            transientVariables: testCtx.variables,
+            transientVariables: testCtx.transientVariables,
           }) as RequestContext | null;
           if (mutatedContext?.execution?.nextRequestIdOrName) {
             nextRequestIdOrName = mutatedContext.execution.nextRequestIdOrName || '';

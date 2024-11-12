@@ -63,7 +63,7 @@ export async function buildRenderContext(
     rootGlobalEnvironment,
     subGlobalEnvironment,
     userUploadEnvironment,
-    variables,
+    transientVariables,
     baseContext = {},
   }: {
     ancestors?: RenderContextAncestor[];
@@ -72,7 +72,7 @@ export async function buildRenderContext(
       rootGlobalEnvironment?: Environment | null;
       subGlobalEnvironment?: Environment | null;
       userUploadEnvironment?: UserUploadEnvironment;
-      variables?: Environment;
+      transientVariables?: Environment;
     baseContext?: Record<string, any>;
   },
 ) {
@@ -142,10 +142,10 @@ export async function buildRenderContext(
   }
 
   // script local variables (insomnia.variable.set) has highest priority
-  if (variables) {
+  if (transientVariables) {
     const ordered = orderedJSON.order(
-      variables.data,
-      variables.dataPropertyOrder,
+      transientVariables.data,
+      transientVariables.dataPropertyOrder,
       JSON_ORDER_SEPARATOR,
     );
     envObjects.push(ordered);
@@ -366,7 +366,7 @@ interface BaseRenderContextOptions {
   rootGlobalEnvironment?: Environment;
   subGlobalEnvironment?: Environment;
   userUploadEnvironment?: UserUploadEnvironment;
-  variables?: Environment;
+  transientVariables?: Environment;
   purpose?: RenderPurpose;
   extraInfo?: ExtraRenderInfo;
   ignoreUndefinedEnvVariable?: boolean;
@@ -381,7 +381,7 @@ export async function getRenderContext(
     environment,
     baseEnvironment,
     userUploadEnvironment,
-    variables,
+    transientVariables,
     ancestors: _ancestors,
     purpose,
     extraInfo,
@@ -490,8 +490,8 @@ export async function getRenderContext(
     getKeySource(userUploadEnvironment.data || {}, inKey, userUploadEnvironment.name || 'uploadData');
   }
 
-  if (variables) {
-    getKeySource(variables.data || {}, inKey, variables.name || 'scriptLocalVariables');
+  if (transientVariables) {
+    getKeySource(transientVariables.data || {}, inKey, transientVariables.name || 'scriptLocalVariables');
   }
 
   // Add meta data helper function
@@ -526,7 +526,7 @@ export async function getRenderContext(
     rootEnvironment,
     subEnvironment: subEnvironment || undefined,
     userUploadEnvironment,
-    variables,
+    transientVariables,
     baseContext,
   });
 }
@@ -593,7 +593,7 @@ export async function getRenderedRequestAndContext(
     environment,
     baseEnvironment,
     userUploadEnvironment,
-    variables,
+    transientVariables,
     extraInfo,
     purpose,
     ignoreUndefinedEnvVariable,
@@ -603,7 +603,7 @@ export async function getRenderedRequestAndContext(
   const workspace = ancestors.find(isWorkspace);
   const parentId = workspace ? workspace._id : 'n/a';
   const cookieJar = await models.cookieJar.getOrCreateForParentId(parentId);
-  const renderContext = await getRenderContext({ request, environment, ancestors, purpose, extraInfo, baseEnvironment, userUploadEnvironment, variables });
+  const renderContext = await getRenderContext({ request, environment, ancestors, purpose, extraInfo, baseEnvironment, userUploadEnvironment, transientVariables });
 
   // HACK: Switch '#}' to '# }' to prevent Nunjucks from barfing
   // https://github.com/kong/insomnia/issues/895

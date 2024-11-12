@@ -180,7 +180,7 @@ export const tryToExecutePreRequestScript = async (
     responseId,
     ancestors,
   }: Awaited<ReturnType<typeof fetchRequestData>>,
-  variables: Environment,
+  transientVariables: Environment,
   userUploadEnvironment?: UserUploadEnvironment,
   iteration?: number,
   iterationCount?: number,
@@ -225,7 +225,7 @@ export const tryToExecutePreRequestScript = async (
     ancestors,
     eventName: 'prerequest',
     settings,
-    variables,
+    transientVariables,
   });
   if (!mutatedContext || 'error' in mutatedContext) {
     return {
@@ -252,7 +252,7 @@ export const tryToExecutePreRequestScript = async (
     requestTestResults: mutatedContext.requestTestResults,
     userUploadEnvironment: mutatedContext.userUploadEnvironment,
     execution: mutatedContext.execution,
-    variables: mutatedContext.variables,
+    transientVariables: mutatedContext.transientVariables,
   };
 };
 
@@ -330,7 +330,7 @@ export const tryToExecuteScript = async (context: RequestAndContextAndOptionalRe
     ancestors,
     eventName,
     execution,
-    variables,
+    transientVariables,
   } = context;
   invariant(script, 'script must be provided');
 
@@ -379,7 +379,7 @@ export const tryToExecuteScript = async (context: RequestAndContextAndOptionalRe
           ...execution, // keep some existing properties in the after-response script from the pre-request script
           location: requestLocation,
         },
-        variables,
+        transientVariables,
       },
     });
     if ('error' in originalOutput) {
@@ -423,14 +423,14 @@ export const tryToExecuteScript = async (context: RequestAndContextAndOptionalRe
       userUploadEnvironment.dataPropertyOrder = userUploadEnvPropertyOrder.map;
     }
 
-    if (output?.variables !== undefined) {
+    if (output?.transientVariables !== undefined) {
       const variablesPropertyOrder = orderedJSON.parse(
-        JSON.stringify(output?.variables?.data || {}),
+        JSON.stringify(output?.transientVariables?.data || {}),
         JSON_ORDER_PREFIX,
         JSON_ORDER_SEPARATOR,
       );
-      variables.data = output?.variables?.data || {};
-      variables.dataPropertyOrder = variablesPropertyOrder.map;
+      transientVariables.data = output?.transientVariables?.data || {};
+      transientVariables.dataPropertyOrder = variablesPropertyOrder.map;
     }
 
     return {
@@ -444,7 +444,7 @@ export const tryToExecuteScript = async (context: RequestAndContextAndOptionalRe
       userUploadEnvironment,
       requestTestResults: output.requestTestResults,
       execution: output.execution,
-      variables,
+      transientVariables,
     };
   } catch (err) {
     await fs.promises.appendFile(
@@ -481,7 +481,7 @@ interface RequestContextForScript {
   globals?: Environment; // there could be no global environment
   settings: Settings;
   execution?: ExecutionOption;
-  variables: Environment;
+  transientVariables: Environment;
 }
 
 type RequestAndContextAndResponse = RequestContextForScript & {
@@ -542,7 +542,7 @@ export const tryToInterpolateRequest = async ({
   extraInfo,
   baseEnvironment,
   userUploadEnvironment,
-  variables,
+  transientVariables,
   ignoreUndefinedEnvVariable,
 }: {
   request: Request;
@@ -551,7 +551,7 @@ export const tryToInterpolateRequest = async ({
   extraInfo?: ExtraRenderInfo;
   baseEnvironment?: Environment;
     userUploadEnvironment?: UserUploadEnvironment;
-    variables?: Environment;
+    transientVariables?: Environment;
   ignoreUndefinedEnvVariable?: boolean;
 }
 ) => {
@@ -561,7 +561,7 @@ export const tryToInterpolateRequest = async ({
       environment,
       baseEnvironment,
       userUploadEnvironment,
-      variables,
+      transientVariables,
       purpose,
       extraInfo,
       ignoreUndefinedEnvVariable,

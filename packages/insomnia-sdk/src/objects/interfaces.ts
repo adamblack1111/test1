@@ -30,5 +30,5 @@ export interface RequestContext {
     requestTestResults?: RequestTestResult[];
     requestInfo: RequestInfoOption;
     execution: ExecutionOption;
-    variables?: Omit<IEnvironment, 'id'>;
+    transientVariables?: Omit<IEnvironment, 'id'>;
 }

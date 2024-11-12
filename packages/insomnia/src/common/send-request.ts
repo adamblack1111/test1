@@ -164,7 +164,7 @@ export async function getSendRequestCallbackMemDb(environmentId: string, memDB: 
     const postMutatedContext = await tryToExecuteAfterResponseScript({
       ...requestData,
       ...mutatedContext,
-      variables: mutatedContext.variables || transientVariables,
+      transientVariables: mutatedContext.transientVariables || transientVariables,
       response,
     });
     // TODO: figure out how to handle this error

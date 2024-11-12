@@ -146,8 +146,8 @@ export async function initInsomniaObject(
     // Mapping rule for the environment user uploaded in collection runner
     const iterationData = rawObj.iterationData ?
         new Environment(rawObj.iterationData.name, rawObj.iterationData.data) : new Environment('iterationData', {});
-    const localVariables = rawObj.variables ?
-        new Environment(rawObj.variables.name, rawObj.variables.data) : new Environment('localVariables', {});
+    const localVariables = rawObj.transientVariables ?
+        new Environment(rawObj.transientVariables.name, rawObj.transientVariables.data) : new Environment('transientVariables', {});
     const cookies = new CookieObject(rawObj.cookieJar);
     // TODO: update follows when post-request script and iterationData are introduced
     const requestInfo = new RequestInfo({
