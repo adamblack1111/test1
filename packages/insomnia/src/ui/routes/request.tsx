@@ -555,6 +555,7 @@ export const sendActionImplementation = async ({
     extraInfo: undefined,
     baseEnvironment: mutatedContext.baseEnvironment,
     userUploadEnvironment: mutatedContext.userUploadEnvironment,
+    variables: mutatedContext.variables,
     ignoreUndefinedEnvVariable,
   });
   const renderedRequest = await tryToTransformRequestWithPlugins(renderedResult);

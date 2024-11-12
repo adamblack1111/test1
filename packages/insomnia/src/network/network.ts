@@ -542,6 +542,7 @@ export const tryToInterpolateRequest = async ({
   extraInfo,
   baseEnvironment,
   userUploadEnvironment,
+  variables,
   ignoreUndefinedEnvVariable,
 }: {
   request: Request;
@@ -550,6 +551,7 @@ export const tryToInterpolateRequest = async ({
   extraInfo?: ExtraRenderInfo;
   baseEnvironment?: Environment;
     userUploadEnvironment?: UserUploadEnvironment;
+    variables?: Environment;
   ignoreUndefinedEnvVariable?: boolean;
 }
 ) => {
@@ -559,6 +561,7 @@ export const tryToInterpolateRequest = async ({
       environment,
       baseEnvironment,
       userUploadEnvironment,
+      variables,
       purpose,
       extraInfo,
       ignoreUndefinedEnvVariable,
