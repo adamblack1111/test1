@@ -24,7 +24,7 @@ import {
   isRemoteProject,
   type Project,
 } from '../../../models/project';
-import { ORG_STORAGE_RULE, type OrgStorageRuleType } from '../../routes/organization';
+import { ORG_STORAGE_RULE } from '../../routes/organization';
 import { Icon } from '../icon';
 import { showAlert, showModal } from '../modals';
 import { AskModal } from '../modals/ask-modal';
@@ -32,7 +32,7 @@ import { AskModal } from '../modals/ask-modal';
 interface Props {
   project: Project & { hasUncommittedOrUnpushedChanges?: boolean };
   organizationId: string;
-  storage: OrgStorageRuleType;
+  storage: ORG_STORAGE_RULE;
 }
 
 interface ProjectActionItem {

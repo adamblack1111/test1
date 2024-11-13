@@ -3,7 +3,7 @@ import { Button, Dialog, Heading, Input, Label, Link, Modal, ModalOverlay, Radio
 import { useFetcher, useParams, useRouteLoaderData } from 'react-router-dom';
 
 import { invariant } from '../../../utils/invariant';
-import { fetchAndCacheOrganizationStorageRule, ORG_STORAGE_RULE, type OrganizationLoaderData, type OrgStorageRuleType } from '../../routes/organization';
+import { fetchAndCacheOrganizationStorageRule, ORG_STORAGE_RULE, type OrganizationLoaderData } from '../../routes/organization';
 import type { ProjectIdLoaderData } from '../../routes/project';
 import { Icon } from '../icon';
 import { showModal } from '.';
@@ -12,7 +12,7 @@ import { AlertModal } from './alert-modal';
 export function useAvailableMockServerType(isLocalProject: boolean) {
   const { organizationId, projectId } = useParams<{ organizationId: string; projectId: string }>();
   const { currentPlan } = useRouteLoaderData('/organization') as OrganizationLoaderData;
-  const [orgStorageRule, setOrgStorageRule] = useState<OrgStorageRuleType>(ORG_STORAGE_RULE.CLOUD_PLUS_LOCAL);
+  const [orgStorageRule, setOrgStorageRule] = useState<ORG_STORAGE_RULE>(ORG_STORAGE_RULE.CLOUD_PLUS_LOCAL);
   useEffect(() => {
     fetchAndCacheOrganizationStorageRule(organizationId as string).then(setOrgStorageRule);
   }, [organizationId]);

@@ -342,11 +342,8 @@ export enum ORG_STORAGE_RULE {
   LOCAL_ONLY = 'local_only',
 };
 
-// https://stackoverflow.com/a/59496175/5714454
-export type OrgStorageRuleType = `${ORG_STORAGE_RULE}`;
-
 export interface StorageRule {
-  storage: OrgStorageRuleType;
+  storage: ORG_STORAGE_RULE;
   isOverridden: boolean;
 }
 
@@ -355,7 +352,7 @@ export interface OrganizationFeatureLoaderData {
   billingPromise: Promise<Billing>;
 }
 export interface OrganizationStorageLoaderData {
-  storagePromise: Promise<OrgStorageRuleType>;
+  storagePromise: Promise<ORG_STORAGE_RULE>;
 }
 
 // Create an in-memory storage to store the storage rules
@@ -377,7 +374,7 @@ export const syncOrganizationStorageRuleAction: ActionFunction = async ({ params
 export async function fetchAndCacheOrganizationStorageRule(
   organizationId: string | undefined,
   forceFetch: boolean = false,
-): Promise<OrgStorageRuleType> {
+): Promise<ORG_STORAGE_RULE> {
   invariant(organizationId, 'Organization ID is required');
 
   if (isScratchpadOrganizationId(organizationId)) {
