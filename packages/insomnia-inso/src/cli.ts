@@ -8,7 +8,7 @@ import { cosmiconfig } from 'cosmiconfig';
 import fs from 'fs';
 import { JSON_ORDER_PREFIX, JSON_ORDER_SEPARATOR } from 'insomnia/src/common/constants';
 import { getSendRequestCallbackMemDb } from 'insomnia/src/common/send-request';
-import { UserUploadEnvironment } from 'insomnia/src/models/environment';
+import { init, type as EnvironmentType, UserUploadEnvironment } from 'insomnia/src/models/environment';
 import { deserializeNDJSON } from 'insomnia/src/utils/ndjson';
 import { type RequestTestResult } from 'insomnia-sdk';
 import { generate, runTestsCli } from 'insomnia-testing';
@@ -535,7 +535,17 @@ export const go = (args?: string[]) => {
         const iterationCount = parseInt(options.iterationCount, 10);
 
         const iterationData = await pathToIterationData(options.iterationData, options.envVar);
-        const sendRequest = await getSendRequestCallbackMemDb(environment._id, db, { validateSSL: !options.disableCertValidation }, iterationData, iterationCount);
+        const transientVariables = {
+          ...init(),
+          _id: uuidv4(),
+          type: EnvironmentType,
+          parentId: '',
+          modified: 0,
+          created: Date.now(),
+          name: 'Transient Variables',
+          data: {},
+        };
+        const sendRequest = await getSendRequestCallbackMemDb(environment._id, db, { validateSSL: !options.disableCertValidation }, transientVariables, iterationData, iterationCount);
         let success = true;
         for (let i = 0; i < iterationCount; i++) {
           let reqIndex = 0;

@@ -35,7 +35,7 @@ const wrapAroundIterationOverIterationData = (list?: UserUploadEnvironment[], cu
   return list[(currentIteration + 1) % list.length];
 };
 
-export async function getSendRequestCallbackMemDb(environmentId: string, memDB: any, settingsOverrides?: SettingsOverride, iterationData?: UserUploadEnvironment[], iterationCount?: number) {
+export async function getSendRequestCallbackMemDb(environmentId: string, memDB: any, settingsOverrides?: SettingsOverride, transientVariables: Environment, iterationData?: UserUploadEnvironment[], iterationCount?: number) {
   // Initialize the DB in-memory and fill it with data if we're given one
   await database.init(
     modelTypes(),
@@ -123,16 +123,7 @@ export async function getSendRequestCallbackMemDb(environmentId: string, memDB: 
   return async function sendRequest(requestId: string, iteration?: number) {
     const requestData = await fetchInsoRequestData(requestId, environmentId);
     const getCurrentRowOfIterationData = wrapAroundIterationOverIterationData(iterationData, iteration);
-    const transientVariables = {
-      ...models.environment.init(),
-      _id: uuidv4(),
-      type: models.environment.type,
-      parentId: requestData.environment.parentId,
-      modified: 0,
-      created: Date.now(),
-      name: 'Transient Environment',
-      data: {},
-    };
+
     const mutatedContext = await tryToExecutePreRequestScript(requestData, transientVariables, getCurrentRowOfIterationData, iteration, iterationCount);
     if (mutatedContext === null) {
       console.error('Time out while executing pre-request script');
