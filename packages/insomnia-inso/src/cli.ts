@@ -400,8 +400,19 @@ export const go = (args?: string[]) => {
         return process.exit(1);
       }
 
+      const transientVariables = {
+        ...init(),
+        _id: uuidv4(),
+        type: EnvironmentType,
+        parentId: '',
+        modified: 0,
+        created: Date.now(),
+        name: 'Transient Variables',
+        data: {},
+      };
+
       try {
-        const sendRequest = await getSendRequestCallbackMemDb(environment._id, db, { validateSSL: !options.disableCertValidation });
+        const sendRequest = await getSendRequestCallbackMemDb(environment._id, db, transientVariables, { validateSSL: !options.disableCertValidation });
         // Generate test file
         const testFileContents = generate(suites.map(suite => ({
           name: suite.name,
@@ -545,7 +556,7 @@ export const go = (args?: string[]) => {
           name: 'Transient Variables',
           data: {},
         };
-        const sendRequest = await getSendRequestCallbackMemDb(environment._id, db, { validateSSL: !options.disableCertValidation }, transientVariables, iterationData, iterationCount);
+        const sendRequest = await getSendRequestCallbackMemDb(environment._id, db, transientVariables, { validateSSL: !options.disableCertValidation }, iterationData, iterationCount);
         let success = true;
         for (let i = 0; i < iterationCount; i++) {
           let reqIndex = 0;

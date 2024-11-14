@@ -34,7 +34,7 @@ const wrapAroundIterationOverIterationData = (list?: UserUploadEnvironment[], cu
   return list[(currentIteration + 1) % list.length];
 };
 
-export async function getSendRequestCallbackMemDb(environmentId: string, memDB: any, settingsOverrides?: SettingsOverride, transientVariables: Environment, iterationData?: UserUploadEnvironment[], iterationCount?: number) {
+export async function getSendRequestCallbackMemDb(environmentId: string, memDB: any, transientVariables: Environment, settingsOverrides?: SettingsOverride, iterationData?: UserUploadEnvironment[], iterationCount?: number) {
   // Initialize the DB in-memory and fill it with data if we're given one
   await database.init(
     modelTypes(),
