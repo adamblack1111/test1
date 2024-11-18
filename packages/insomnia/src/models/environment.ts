@@ -9,6 +9,8 @@ import { type BaseModel } from './index';
 export const name = 'Environment';
 export const type = 'Environment';
 export const prefix = 'env';
+export const vaultEnvironmentPath = 'vault';
+export const vaultEnvironmentMaskValue = '••••••';
 export const canDuplicate = true;
 export const canSync = true;
 // for those keys do not need to add in model init method
@@ -35,7 +37,8 @@ export enum EnvironmentType {
 };
 export enum EnvironmentKvPairDataType {
   JSON = 'json',
-  STRING = 'str'
+  STRING = 'str',
+  SECRET = 'secret',
 }
 export interface EnvironmentKvPairData {
   id: string;
@@ -53,14 +56,27 @@ export function getKVPairFromData(data: Record<string, any>, dataPropertyOrder: 
   const kvPair: EnvironmentKvPairData[] = [];
   Object.keys(ordered).forEach(key => {
     const val = ordered[key];
-    const isValObject = val && typeof val === 'object' && data !== null;
-    kvPair.push({
-      id: generateId('envPair'),
-      name: key,
-      value: isValObject ? JSON.stringify(val) : String(val),
-      type: isValObject ? EnvironmentKvPairDataType.JSON : EnvironmentKvPairDataType.STRING,
-      enabled: true,
-    });
+    // get all secret items from vaultEnvironmentPath
+    if (key === vaultEnvironmentPath && val === 'object') {
+      Object.keys(val).forEach(secretKey => {
+        kvPair.push({
+          id: generateId('envPair'),
+          name: secretKey,
+          value: val[secretKey],
+          type: EnvironmentKvPairDataType.SECRET,
+          enabled: true,
+        });
+      });
+    } else {
+      const isValidObject = val && typeof val === 'object' && data !== null;
+      kvPair.push({
+        id: generateId('envPair'),
+        name: key,
+        value: isValidObject ? JSON.stringify(val) : String(val),
+        type: isValidObject ? EnvironmentKvPairDataType.JSON : EnvironmentKvPairDataType.STRING,
+        enabled: true,
+      });
+    };
   });
   return kvPair;
 }
@@ -70,13 +86,41 @@ export function getDataFromKVPair(kvPair: EnvironmentKvPairData[]) {
   kvPair.forEach(pair => {
     const { name, value, type, enabled } = pair;
     if (enabled) {
-      data[name] = type === EnvironmentKvPairDataType.JSON ? JSON.parse(value) : value;
+      if (type === EnvironmentKvPairDataType.SECRET) {
+        if (!data[vaultEnvironmentPath]) {
+          // create object storing all secret items
+          data[vaultEnvironmentPath] = {};
+        };
+        data[vaultEnvironmentPath][name] = value;
+      } else {
+        data[name] = type === EnvironmentKvPairDataType.JSON ? JSON.parse(value) : value;
+      }
     }
   });
   return {
     data,
     dataPropertyOrder: null,
   };
+}
+
+// mask vault environment varibale if necessary
+export function maskVaultEnvironmentData(environment: Environment) {
+  if (environment.isPrivate) {
+    const { data, kvPairData } = environment;
+    const shouldMask = kvPairData?.some(pair => pair.type === EnvironmentKvPairDataType.SECRET);
+    if (shouldMask) {
+      kvPairData?.forEach(pair => {
+        const { type } = pair;
+        if (type === EnvironmentKvPairDataType.SECRET) {
+          pair.value = vaultEnvironmentMaskValue;
+        }
+      });
+      Object.keys(data[vaultEnvironmentPath]).forEach(vaultKey => {
+        data[vaultEnvironmentPath][vaultKey] = vaultEnvironmentMaskValue;
+      });
+    }
+  };
+  return environment;
 }
 
 export const isEnvironment = (model: Pick<BaseModel, 'type'>): model is Environment => (

@@ -26,6 +26,7 @@ export const General: FC = () => {
     settings,
     userSession,
   } = useRootLoaderData();
+
   const isLoggedIn = Boolean(userSession.id);
 
   return (

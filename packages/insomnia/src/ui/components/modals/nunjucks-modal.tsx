@@ -73,6 +73,7 @@ export const NunjucksModal = forwardRef<NunjucksModalHandle, ModalProps & Props>
   return (
     <Modal
       ref={modalRef}
+      className='!z-10'
       onHide={() => {
         state.onDone(state.template);
         setState(state => ({
@@ -88,6 +89,7 @@ export const NunjucksModal = forwardRef<NunjucksModalHandle, ModalProps & Props>
             event.preventDefault();
             modalRef.current?.hide();
           }}
+          className='px-2'
         >{editor}</form>
       </ModalBody>
       <ModalFooter>
