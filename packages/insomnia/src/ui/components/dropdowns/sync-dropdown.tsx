@@ -2,8 +2,8 @@ import type { IconProp } from '@fortawesome/fontawesome-svg-core';
 import React, { type FC, Fragment, useEffect, useState } from 'react';
 import { Button, Collection, Menu, MenuItem, MenuTrigger, Popover, Section, Tooltip, TooltipTrigger } from 'react-aria-components';
 import { useFetcher, useParams } from 'react-router-dom';
-import { useInterval } from 'react-use';
 
+// import { useInterval } from 'react-use';
 import * as session from '../../../account/session';
 import { getAppWebsiteBaseURL } from '../../../common/constants';
 import { isOwnerOfOrganization } from '../../../models/organization';
@@ -27,7 +27,7 @@ interface Props {
   gitSyncEnabled: boolean;
 }
 
-const ONE_MINUTE_IN_MS = 1000 * 60;
+// const ONE_MINUTE_IN_MS = 1000 * 60;
 
 export const SyncDropdown: FC<Props> = ({ gitSyncEnabled }) => {
   const { organizationId, projectId, workspaceId } = useParams<{ organizationId: string; projectId: string; workspaceId: string }>();
@@ -44,7 +44,7 @@ export const SyncDropdown: FC<Props> = ({ gitSyncEnabled }) => {
   const rollbackFetcher = useFetcher();
   const checkoutFetcher = useFetcher();
   const syncDataLoaderFetcher = useFetcher<SyncDataLoaderData>();
-  const syncDataActionFetcher = useFetcher();
+  // const syncDataActionFetcher = useFetcher();
 
   useEffect(() => {
     if (syncDataLoaderFetcher.state === 'idle' && !syncDataLoaderFetcher.data) {
@@ -52,12 +52,13 @@ export const SyncDropdown: FC<Props> = ({ gitSyncEnabled }) => {
     }
   }, [organizationId, projectId, syncDataLoaderFetcher, workspaceId]);
 
-  useInterval(() => {
-    syncDataActionFetcher.submit({}, {
-      method: 'POST',
-      action: `/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/insomnia-sync/sync-data`,
-    });
-  }, ONE_MINUTE_IN_MS);
+  // useInterval(() => {
+  //   // Interval to keep the sync data up to date
+  //   syncDataActionFetcher.submit({}, {
+  //     method: 'POST',
+  //     action: `/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/insomnia-sync/sync-data`,
+  //   });
+  // }, ONE_MINUTE_IN_MS);
 
   const error = checkoutFetcher.data?.error || pullFetcher.data?.error || pushFetcher.data?.error || rollbackFetcher.data?.error;
 
