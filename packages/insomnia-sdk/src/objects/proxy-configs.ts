@@ -37,7 +37,7 @@ export class ProxyConfig extends Property {
     static port?: number = undefined;
     static tunnel: boolean = false; // unsupported
     static username: string = '';
-    static protocol: string = 'http:';
+    static protocol: string = 'https:';
 
     constructor(def: {
         id?: string;
@@ -202,8 +202,8 @@ export function transformToSdkProxyOptions(
     if (bestProxy !== '') {
         let sanitizedProxy = bestProxy;
         if (bestProxy.indexOf('://') === -1) {
-            console.warn(`The protocol is missing and adding 'http:' protocol: ${bestProxy}`);
-            sanitizedProxy = 'http://' + bestProxy;
+            console.warn(`The protocol is missing and adding 'https:' protocol: ${bestProxy}`);
+            sanitizedProxy = 'https://' + bestProxy;
         }
 
         try {

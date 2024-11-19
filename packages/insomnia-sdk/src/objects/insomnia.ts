@@ -181,8 +181,8 @@ export async function initInsomniaObject(
         { disabled: true };
 
     const proxy = transformToSdkProxyOptions(
-        rawObj.settings.httpsProxy,
         rawObj.settings.httpProxy,
+        rawObj.settings.httpsProxy,
         rawObj.settings.proxyEnabled,
         rawObj.settings.noProxy,
     );
